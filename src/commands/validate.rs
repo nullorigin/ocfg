@@ -1,6 +1,7 @@
 use crate::config::OcfgConfig;
 use crate::crypto;
 use crate::error::Result;
+use crate::err;
 
 pub async fn run(syntax: bool, required: bool, secrets: bool, all: bool) -> Result<()> {
     println!("Validating configuration...");
@@ -95,7 +96,7 @@ pub async fn run(syntax: bool, required: bool, secrets: bool, all: bool) -> Resu
         println!("\n✓ Configuration is valid!");
         Ok(())
     } else if !errors.is_empty() {
-        Err(anyhow::anyhow!("Validation failed with {} error(s)", errors.len()).into())
+        Err(err!(Validation, "Validation failed with {} error(s)", errors.len()))
     } else {
         println!("\n✓ Configuration is valid (with warnings)");
         Ok(())

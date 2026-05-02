@@ -1,7 +1,6 @@
 use crate::config::OcfgConfig;
 use crate::error::Result;
 use crate::interactive;
-use anyhow::Context;
 
 pub async fn run(profile: Option<String>, target: Option<String>, non_interactive: bool) -> Result<()> {
     println!("Initializing OpenWrt configuration...");
@@ -30,7 +29,8 @@ pub async fn run(profile: Option<String>, target: Option<String>, non_interactiv
         interactive::interactive_wizard()?
     };
 
-    config.save().context("Failed to save configuration")?;
+    config.save()
+        .map_err(|e| crate::error::OcfgError::config(format!("Failed to save configuration: {}", e)))?;
 
     println!("\nConfiguration initialized successfully!");
     println!("Config file saved to: {:?}", OcfgConfig::config_path());

@@ -1,6 +1,5 @@
 use crate::config::OcfgConfig;
 use crate::error::Result;
-use anyhow::Context;
 
 pub async fn run(
     wan: bool,
@@ -37,7 +36,8 @@ pub async fn run(
         println!("OpenVPN port: {}", config.vpn.openvpn_port);
     }
 
-    config.save().context("Failed to save configuration")?;
+    config.save()
+        .map_err(|e| crate::error::OcfgError::config(format!("Failed to save configuration: {}", e)))?;
 
     println!("Network configuration complete!");
     Ok(())

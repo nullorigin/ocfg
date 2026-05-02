@@ -13,34 +13,26 @@ categories = ["command-line-utilities", "config"]
 [dependencies]
 # CLI framework
 clap = { version = "4.5", features = ["derive", "env"] }
-anyhow = "1.0"
-thiserror = "1.0"
+thiserror = "2.0"
 
 # Serialization/deserialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-serde_yaml = "0.9"
-toml = "0.8"
+toml = "1.1.2"
 
 # Configuration management
-config = "0.14"
-dirs = "5.0"
+dirs = "6.0"
 
 # Interactive prompts
-dialoguer = "0.11"
-console = "0.15"
-indicatif = "0.17"
+dialoguer = "0.12"
+indicatif = "0.18.4"
 
 # Cryptography for secret generation
-rand = "0.8"
-openssl = "0.10"
+rand = "0.10.1"
 hex = "0.4"
 base64 = "0.22"
 
-# File operations
-tempfile = "3.10"
-shellexpand = "3.1"
-
+reqwest = "0.13.3"
 # Logging
 log = "0.4"
 env_logger = "0.11"
@@ -48,17 +40,13 @@ env_logger = "0.11"
 # Async runtime (for future network operations)
 tokio = { version = "1.35", features = ["full"] }
 
-# HTTP client for wiki parsing
-reqwest = { version = "0.11", features = ["json"] }
-
-# Regex for parsing
-regex = "1.10"
-
 # Template rendering
-handlebars = "5.1"
+handlebars = "6.4.0"
+regex = "1.12.3"
+openssl = "0.10.78"
+
 
 [dev-dependencies]
-pretty_assertions = "1.4"
 
 [[bin]]
 name = "ocfg"

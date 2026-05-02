@@ -2,6 +2,33 @@ use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, OcfgError>;
 
+/// Macro for creating OcfgError instances with automatic variant prefixing
+/// 
+/// # Examples
+/// 
+/// ```rust
+/// use ocfg::err;
+/// use ocfg::error::OcfgError;
+/// 
+/// // Simple message
+/// let error = err!(Config, "Configuration file not found");
+/// 
+/// // With formatting
+/// let error = err!(Config, "Failed to parse {}: {}", "config.toml", "invalid syntax");
+/// 
+/// // The macro automatically expands to:
+/// // OcfgError::Config("Configuration file not found".to_string())
+/// ```
+#[macro_export]
+macro_rules! err {
+    ($variant:ident, $msg:expr) => {
+        $crate::error::OcfgError::$variant($msg.to_string())
+    };
+    ($variant:ident, $fmt:expr, $($arg:tt)*) => {
+        $crate::error::OcfgError::$variant(format!($fmt, $($arg)*))
+    };
+}
+
 #[derive(Error, Debug)]
 pub enum OcfgError {
     #[error("Configuration error: {0}")]
@@ -37,6 +64,58 @@ pub enum OcfgError {
     #[error("Dialoguer error: {0}")]
     Dialoguer(#[from] dialoguer::Error),
 
-    #[error("Anyhow error: {0}")]
-    Anyhow(#[from] anyhow::Error),
+    #[error("Network error: {0}")]
+    Network(String),
+}
+
+impl OcfgError {
+    /// Create a new Config error
+    pub fn config(msg: impl Into<String>) -> Self {
+        OcfgError::Config(msg.into())
+    }
+
+    /// Create a new IO error
+    pub fn io(err: std::io::Error) -> Self {
+        OcfgError::Io(err)
+    }
+
+    /// Create a new Serialization error
+    pub fn serialization(msg: impl Into<String>) -> Self {
+        OcfgError::Serialization(msg.into())
+    }
+
+    /// Create a new Crypto error
+    pub fn crypto(msg: impl Into<String>) -> Self {
+        OcfgError::Crypto(msg.into())
+    }
+
+    /// Create a new Template error
+    pub fn template(msg: impl Into<String>) -> Self {
+        OcfgError::Template(msg.into())
+    }
+
+    /// Create a new Validation error
+    pub fn validation(msg: impl Into<String>) -> Self {
+        OcfgError::Validation(msg.into())
+    }
+
+    /// Create a new OpenWrt error
+    pub fn openwrt(msg: impl Into<String>) -> Self {
+        OcfgError::OpenWrt(msg.into())
+    }
+
+    /// Create a new MissingRequired error
+    pub fn missing_required(msg: impl Into<String>) -> Self {
+        OcfgError::MissingRequired(msg.into())
+    }
+
+    /// Create a new InvalidValue error
+    pub fn invalid_value(msg: impl Into<String>) -> Self {
+        OcfgError::InvalidValue(msg.into())
+    }
+
+    /// Create a new Network error
+    pub fn network(msg: impl Into<String>) -> Self {
+        OcfgError::Network(msg.into())
+    }
 }

@@ -1,6 +1,6 @@
-use anyhow::Result;
 use clap::{Parser, Subcommand};
 use log::info;
+use ocfg::error::Result;
 
 #[derive(Parser)]
 #[command(name = "ocfg")]

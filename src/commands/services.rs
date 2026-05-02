@@ -1,6 +1,5 @@
 use crate::config::OcfgConfig;
 use crate::error::Result;
-use anyhow::Context;
 
 pub async fn run(
     dns_proxy: bool,
@@ -38,7 +37,8 @@ pub async fn run(
         println!("NTP servers: {:?}", config.time.ntp_servers);
     }
 
-    config.save().context("Failed to save configuration")?;
+    config.save()
+        .map_err(|e| crate::error::OcfgError::config(format!("Failed to save configuration: {}", e)))?;
 
     println!("Service configuration complete!");
     Ok(())

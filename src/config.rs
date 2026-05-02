@@ -1,4 +1,4 @@
-use anyhow::Result;
+use crate::error::{OcfgError, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
@@ -139,7 +139,7 @@ impl std::fmt::Display for CryptoLibrary {
 impl std::str::FromStr for CryptoLibrary {
     type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "openssl" => Ok(CryptoLibrary::OpenSSL),
             "mbedtls" => Ok(CryptoLibrary::MbedTLS),
@@ -366,7 +366,7 @@ impl OcfgConfig {
         if config_path.exists() {
             let content = fs::read_to_string(&config_path)?;
             let config: OcfgConfig = toml::from_str(&content)
-                .map_err(|e| anyhow::anyhow!("Failed to parse config file: {}", e))?;
+                .map_err(|e| OcfgError::config(format!("Failed to parse config file: {}", e)))?;
             Ok(config)
         } else {
             Ok(Self::default())
@@ -381,7 +381,7 @@ impl OcfgConfig {
         }
 
         let content = toml::to_string_pretty(self)
-            .map_err(|e| anyhow::anyhow!("Failed to serialize config: {}", e))?;
+            .map_err(|e| OcfgError::config(format!("Failed to serialize config: {}", e)))?;
         
         fs::write(&config_path, content)?;
         Ok(())

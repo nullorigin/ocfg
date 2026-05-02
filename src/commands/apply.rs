@@ -1,7 +1,7 @@
 use crate::config::OcfgConfig;
 use crate::templates::TemplateEngine;
 use crate::error::Result;
-use anyhow::Context;
+use crate::err;
 use std::fs;
 use std::path::PathBuf;
 
@@ -11,7 +11,7 @@ pub async fn run(openwrt_dir: String, dry_run: bool) -> Result<()> {
     let openwrt_path = PathBuf::from(&openwrt_dir);
     
     if !openwrt_path.exists() {
-        return Err(anyhow::anyhow!("OpenWrt directory does not exist: {}", openwrt_dir).into());
+        return Err(err!(OpenWrt, "OpenWrt directory does not exist: {}", openwrt_dir));
     }
 
     let config = OcfgConfig::load()?;
@@ -41,11 +41,11 @@ pub async fn run(openwrt_dir: String, dry_run: bool) -> Result<()> {
         } else {
             if let Some(parent) = full_path.parent() {
                 fs::create_dir_all(parent)
-                    .context("Failed to create directory")?;
+                    .map_err(|e| crate::error::OcfgError::Io(e))?;
             }
             
             fs::write(&full_path, content)
-                .context("Failed to write file")?;
+                .map_err(|e| crate::error::OcfgError::Io(e))?;
             
             println!("Created: {}", full_path.display());
         }

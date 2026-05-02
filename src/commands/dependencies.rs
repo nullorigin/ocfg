@@ -1,8 +1,8 @@
 use crate::config::OcfgConfig;
 use crate::dependencies::{DependencyKnowledgeBase, DependencyCheckResult};
 use crate::error::Result;
+use crate::err;
 use crate::wiki_parser::OpenWrtWikiParser;
-use anyhow::Context;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 
@@ -82,7 +82,7 @@ pub async fn run(
     }
 
     if result.has_errors() {
-        Err(anyhow::anyhow!("Dependency check failed with errors").into())
+        Err(err!(Validation, "Dependency check failed with errors"))
     } else {
         Ok(())
     }
@@ -141,7 +141,7 @@ async fn update_dependencies_from_wiki(
 
 fn load_kernel_config(path: &str) -> Result<HashMap<String, String>> {
     let content = fs::read_to_string(path)
-        .context("Failed to read kernel config file")?;
+        .map_err(|e| crate::error::OcfgError::Io(e))?;
     
     let mut config = HashMap::new();
     

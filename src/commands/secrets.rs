@@ -1,7 +1,6 @@
 use crate::config::OcfgConfig;
 use crate::crypto;
 use crate::error::Result;
-use anyhow::Context;
 use std::fs;
 
 pub async fn run(
@@ -54,10 +53,10 @@ pub async fn run(
     };
 
     let secrets_content = toml::to_string_pretty(&config.secrets)
-        .context("Failed to serialize secrets")?;
+        .map_err(|e| crate::error::OcfgError::serialization(format!("Failed to serialize secrets: {}", e)))?;
 
     fs::write(&secrets_path, secrets_content)
-        .context("Failed to write secrets file")?;
+        .map_err(|e| crate::error::OcfgError::Io(e))?;
 
     // Set restrictive permissions
     #[cfg(unix)]

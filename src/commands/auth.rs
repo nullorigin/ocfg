@@ -1,7 +1,6 @@
 use crate::config::OcfgConfig;
 use crate::crypto;
 use crate::error::Result;
-use anyhow::Context;
 use dialoguer::{Input, Confirm, Password};
 
 pub async fn run(
@@ -84,7 +83,8 @@ pub async fn run(
         }
     }
 
-    config.save().context("Failed to save configuration")?;
+    config.save()
+        .map_err(|e| crate::error::OcfgError::config(format!("Failed to save configuration: {}", e)))?;
 
     println!("Authentication configuration complete!");
     Ok(())

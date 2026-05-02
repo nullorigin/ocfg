@@ -1,6 +1,5 @@
 use crate::config::OcfgConfig;
 use crate::error::Result;
-use anyhow::Context;
 
 pub async fn run(
     dns: bool,
@@ -33,7 +32,8 @@ pub async fn run(
         println!("Kernel hardening enabled: {}", config.security.enable_kernel_hardening);
     }
 
-    config.save().context("Failed to save configuration")?;
+    config.save()
+        .map_err(|e| crate::error::OcfgError::config(format!("Failed to save configuration: {}", e)))?;
 
     println!("Security configuration complete!");
     Ok(())

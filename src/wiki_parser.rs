@@ -1,6 +1,6 @@
+use regex::Regex;
 use crate::dependencies::{DependencyInfo, DependencyCategory, KernelDependency};
 use crate::error::Result;
-use regex::Regex;
 
 pub struct OpenWrtWikiParser {
     client: reqwest::Client,

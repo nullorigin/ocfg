@@ -1,8 +1,8 @@
 use crate::error::{OcfgError, Result};
 use openssl::rand::rand_bytes;
 use openssl::sha::sha256;
-use rand::Rng;
 use base64::{Engine as _, engine::general_purpose};
+use rand::RngExt;
 
 /// Generate a cryptographically secure random hex string
 pub fn generate_hex(length: usize) -> Result<String> {
@@ -23,11 +23,11 @@ pub fn generate_base64(length: usize) -> Result<String> {
 /// Generate a secure random password
 pub fn generate_password(length: usize) -> Result<String> {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     
     let password: String = (0..length)
         .map(|_| {
-            let idx = rng.gen_range(0..CHARSET.len());
+            let idx = rng.random_range(0..CHARSET.len());
             CHARSET[idx] as char
         })
         .collect();
@@ -77,8 +77,8 @@ pub fn generate_api_key() -> Result<String> {
 
 /// Generate a certificate serial number
 pub fn generate_serial() -> Result<String> {
-    let mut rng = rand::thread_rng();
-    let serial: u64 = rng.gen();
+    let mut rng = rand::rng();
+    let serial: u64 = rng.random();
     Ok(format!("{:016x}", serial))
 }
 

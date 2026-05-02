@@ -1,7 +1,6 @@
 use crate::config::OcfgConfig;
 use crate::error::Result;
 use crate::crypto;
-use anyhow::Context;
 use dialoguer::{Confirm, Input};
 use indicatif::{ProgressBar, ProgressStyle};
 
@@ -149,14 +148,14 @@ fn prompt_radius() -> Result<crate::config::RadiusConfig> {
         .default("1812".to_string())
         .interact()?
         .parse()
-        .context("Invalid port number")?;
+        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
 
     let acct_port: u16 = Input::new()
         .with_prompt("RADIUS accounting port")
         .default("1813".to_string())
         .interact()?
         .parse()
-        .context("Invalid port number")?;
+        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
 
     Ok(crate::config::RadiusConfig {
         auth_port,
@@ -174,7 +173,7 @@ fn prompt_firewall() -> Result<crate::config::FirewallConfig> {
         .default("20".to_string())
         .interact()?
         .parse()
-        .context("Invalid rate limit")?;
+        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid rate limit".to_string()))?;
 
     Ok(crate::config::FirewallConfig {
         syn_flood_rate,
@@ -191,7 +190,7 @@ fn prompt_ssh() -> Result<crate::config::SshConfig> {
         .default("5".to_string())
         .interact()?
         .parse()
-        .context("Invalid timeout")?;
+        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid timeout".to_string()))?;
 
     let use_key = Confirm::new()
         .with_prompt("Configure SSH public key")
@@ -221,14 +220,14 @@ fn prompt_web() -> Result<crate::config::WebConfig> {
         .default("80".to_string())
         .interact()?
         .parse()
-        .context("Invalid port number")?;
+        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
 
     let https_port: u16 = Input::new()
         .with_prompt("HTTPS port")
         .default("443".to_string())
         .interact()?
         .parse()
-        .context("Invalid port number")?;
+        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
 
     Ok(crate::config::WebConfig {
         http_port,
@@ -247,14 +246,14 @@ fn prompt_vpn() -> Result<crate::config::VpnConfig> {
         .default("51820".to_string())
         .interact()?
         .parse()
-        .context("Invalid port number")?;
+        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
 
     let openvpn_port: u16 = Input::new()
         .with_prompt("OpenVPN port")
         .default("1194".to_string())
         .interact()?
         .parse()
-        .context("Invalid port number")?;
+        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
 
     Ok(crate::config::VpnConfig {
         wireguard_port,
@@ -307,7 +306,7 @@ fn prompt_build() -> Result<crate::config::BuildConfig> {
         .default("0".to_string())
         .interact()?
         .parse()
-        .context("Invalid job count")?;
+        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid job count".to_string()))?;
 
     let verbose = Confirm::new()
         .with_prompt("Verbose build output")

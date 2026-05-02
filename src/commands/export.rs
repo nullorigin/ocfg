@@ -1,7 +1,6 @@
 use crate::config::OcfgConfig;
 use crate::templates::TemplateEngine;
 use crate::error::Result;
-use anyhow::Context;
 use std::fs;
 
 pub async fn run(format: String, output: Option<String>) -> Result<()> {
@@ -18,24 +17,20 @@ pub async fn run(format: String, output: Option<String>) -> Result<()> {
         }
         "json" => {
             serde_json::to_string_pretty(&config)
-                .context("Failed to serialize to JSON")?
-        }
-        "yaml" => {
-            serde_yaml::to_string(&config)
-                .context("Failed to serialize to YAML")?
+                .map_err(|e| crate::error::OcfgError::serialization(format!("Failed to serialize to JSON: {}", e)))?
         }
         "toml" => {
             toml::to_string_pretty(&config)
-                .context("Failed to serialize to TOML")?
+                .map_err(|e| crate::error::OcfgError::serialization(format!("Failed to serialize to TOML: {}", e)))?
         }
         _ => {
-            return Err(anyhow::anyhow!("Unsupported format: {}. Supported formats: env, json, yaml, toml", format).into());
+            return Err(crate::error::OcfgError::validation(format!("Unsupported format: {}. Supported formats: env, json, yaml, toml", format)));
         }
     };
 
     if let Some(output_path) = output {
         fs::write(&output_path, content)
-            .context("Failed to write output file")?;
+            .map_err(|e| crate::error::OcfgError::Io(e))?;
         println!("Configuration exported to: {}", output_path);
     } else {
         println!("{}", content);

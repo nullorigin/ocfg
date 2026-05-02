@@ -1,6 +1,5 @@
 use crate::config::OcfgConfig;
 use crate::error::Result;
-use anyhow::Context;
 
 pub async fn run(
     list: bool,
@@ -45,7 +44,8 @@ pub async fn run(
         println!("Kernel hardening options will be applied");
     }
 
-    config.save().context("Failed to save configuration")?;
+    config.save()
+        .map_err(|e| crate::error::OcfgError::config(format!("Failed to save configuration: {}", e)))?;
 
     println!("Package configuration complete!");
     Ok(())
