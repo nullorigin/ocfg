@@ -1,6 +1,7 @@
 use crate::config::OcfgConfig;
 use crate::templates::TemplateEngine;
 use crate::error::Result;
+use crate::json::ToJson;
 use std::fs;
 
 pub async fn run(format: String, output: Option<String>) -> Result<()> {
@@ -16,8 +17,7 @@ pub async fn run(format: String, output: Option<String>) -> Result<()> {
             format!("{}\n\n# Secrets file (setup-secrets.env)\n{}", config_env, secrets_env)
         }
         "json" => {
-            serde_json::to_string_pretty(&config)
-                .map_err(|e| crate::error::OcfgError::serialization(format!("Failed to serialize to JSON: {}", e)))?
+            config.to_json_pretty(2)
         }
         "toml" => {
             toml::to_string_pretty(&config)
