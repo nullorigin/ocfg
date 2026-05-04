@@ -1,6 +1,7 @@
 use crate::config::OcfgConfig;
 use crate::crypto;
 use crate::error::Result;
+use crate::err;
 use dialoguer::{Input, Confirm, Password};
 
 pub async fn run(
@@ -19,10 +20,10 @@ pub async fn run(
         
         if non_interactive {
             if config.secrets.radius_shared_secret.is_none() {
-                config.secrets.radius_shared_secret = Some(crypto::generate_radius_secret()?);
+                config.secrets.radius_shared_secret = Some(crypto::generate_radius_secret());
             }
             if config.secrets.radius_admin_password.is_none() {
-                config.secrets.radius_admin_password = Some(crypto::generate_password(32)?);
+                config.secrets.radius_admin_password = Some(crypto::generate_password(32));
             }
         } else {
             let secret: String = Input::new()
@@ -31,7 +32,7 @@ pub async fn run(
                 .interact()?;
             
             config.secrets.radius_shared_secret = if secret.is_empty() {
-                Some(crypto::generate_radius_secret()?)
+                Some(crypto::generate_radius_secret())
             } else {
                 Some(secret)
             };
@@ -78,13 +79,13 @@ pub async fn run(
                 let password = Password::new()
                     .with_prompt("Root password")
                     .interact()?;
-                config.secrets.root_password_hash = Some(crypto::hash_password(&password)?);
+                config.secrets.root_password_hash = Some(crypto::hash_password(&password));
             }
         }
     }
 
     config.save()
-        .map_err(|e| crate::error::OcfgError::config(format!("Failed to save configuration: {}", e)))?;
+        .map_err(|e| err!(Config, "Failed to save configuration: {}", e))?;
 
     println!("Authentication configuration complete!");
     Ok(())

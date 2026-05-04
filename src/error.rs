@@ -3,29 +3,36 @@ use thiserror::Error;
 pub type Result<T> = std::result::Result<T, OcfgError>;
 
 /// Macro for creating OcfgError instances with automatic variant prefixing
-/// 
+/// and debug location tracking using the dbg_here! proc-macro
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use ocfg::err;
 /// use ocfg::error::OcfgError;
-/// 
+///
 /// // Simple message
 /// let error = err!(Config, "Configuration file not found");
-/// 
+///
 /// // With formatting
 /// let error = err!(Config, "Failed to parse {}: {}", "config.toml", "invalid syntax");
-/// 
+///
 /// // The macro automatically expands to:
 /// // OcfgError::Config("Configuration file not found".to_string())
+/// // And prints debug location information via dbg_here!
 /// ```
 #[macro_export]
 macro_rules! err {
     ($variant:ident, $msg:expr) => {
-        $crate::error::OcfgError::$variant($msg.to_string())
+        {
+            $crate::error::OcfgError::$variant(format!("Error created: {} - {}", stringify!($variant), $msg))
+        }
     };
+    // Other variants with formatted message
     ($variant:ident, $fmt:expr, $($arg:tt)*) => {
-        $crate::error::OcfgError::$variant(format!($fmt, $($arg)*))
+        {
+            $crate::error::OcfgError::$variant(format!("Error created: {} - {}", stringify!($variant), format!($fmt, $($arg)*)))
+        }
     };
 }
 
@@ -52,8 +59,8 @@ pub enum OcfgError {
     #[error("OpenWrt integration error: {0}")]
     OpenWrt(String),
 
-    #[error("User cancelled operation")]
-    Cancelled,
+    #[error("User cancelled operation: {0}")]
+    Cancelled(String),
 
     #[error("Missing required configuration: {0}")]
     MissingRequired(String),
@@ -102,6 +109,11 @@ impl OcfgError {
     /// Create a new OpenWrt error
     pub fn openwrt(msg: impl Into<String>) -> Self {
         OcfgError::OpenWrt(msg.into())
+    }
+
+    /// Create a new Cancelled error
+    pub fn cancelled(msg: impl Into<String>) -> Self {
+        OcfgError::Cancelled(msg.into())
     }
 
     /// Create a new MissingRequired error

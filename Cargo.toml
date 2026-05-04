@@ -15,6 +15,9 @@ categories = ["command-line-utilities", "config"]
 clap = { version = "4.5", features = ["derive", "env"] }
 thiserror = "2.0"
 
+# Internal macros
+ocfg-macros = { path = "ocfg-macros" }
+
 # Serialization/deserialization
 serde = { version = "1.0", features = ["derive"] }
 toml = "1.1.2"
@@ -28,8 +31,6 @@ indicatif = "0.18.4"
 
 # Cryptography for secret generation
 rand = "0.10.1"
-hex = "0.4"
-base64 = "0.22"
 
 reqwest = "0.13.3"
 # Logging

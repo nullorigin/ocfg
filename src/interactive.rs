@@ -1,5 +1,6 @@
 use crate::config::OcfgConfig;
 use crate::error::Result;
+use crate::err;
 use crate::crypto;
 use dialoguer::{Confirm, Input};
 use indicatif::{ProgressBar, ProgressStyle};
@@ -66,12 +67,20 @@ fn prompt_network() -> Result<crate::config::NetworkConfig> {
     let wan_interface = Input::new()
         .with_prompt("WAN interface name")
         .default("wan".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Network prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let lan_interface = Input::new()
         .with_prompt("LAN bridge interface name")
         .default("br-lan".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Network prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     Ok(crate::config::NetworkConfig {
         wan_interface,
@@ -85,22 +94,34 @@ fn prompt_dns() -> Result<crate::config::DnsConfig> {
     let doh_upstream = Input::new()
         .with_prompt("DNS over HTTPS upstream")
         .default("https://dns.quad9.net/dns-query".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] DNS prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let dot_bootstrap = Input::new()
         .with_prompt("DNS over TLS bootstrap")
         .default("9.9.9.9:853".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] DNS prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let dnssec_enabled = Confirm::new()
         .with_prompt("Enable DNSSEC validation")
         .default(true)
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] DNS prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     Ok(crate::config::DnsConfig {
         doh_upstream,
         dot_bootstrap,
-        proxy_listen_addr: "127.0.0.1".to_string(),
+        proxy_listen_addr: "127.0.1".to_string(),
         proxy_listen_port: 5353,
         dnssec_enabled,
         dnssec_root_key: None,
@@ -113,22 +134,38 @@ fn prompt_wifi() -> Result<crate::config::WifiConfig> {
     let ssid_24g = Input::new()
         .with_prompt("2.4GHz SSID")
         .default("Enterprise-2.4G".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] WiFi prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let ssid_5g = Input::new()
         .with_prompt("5GHz SSID")
         .default("Enterprise-5G".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] WiFi prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let country = Input::new()
         .with_prompt("Country code")
         .default("US".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] WiFi prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let isolate_guest = Confirm::new()
         .with_prompt("Isolate guest clients")
         .default(false)
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] WiFi prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     Ok(crate::config::WifiConfig {
         ssid_24g,
@@ -146,16 +183,24 @@ fn prompt_radius() -> Result<crate::config::RadiusConfig> {
     let auth_port: u16 = Input::new()
         .with_prompt("RADIUS authentication port")
         .default("1812".to_string())
-        .interact()?
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] RADIUS prompt failed: {}", file!(), line!(), e);
+            e
+        })?
         .parse()
-        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
+        .map_err(|_| err!(InvalidValue, "Invalid port number"))?;
 
     let acct_port: u16 = Input::new()
         .with_prompt("RADIUS accounting port")
         .default("1813".to_string())
-        .interact()?
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] RADIUS prompt failed: {}", file!(), line!(), e);
+            e
+        })?
         .parse()
-        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
+        .map_err(|_| err!(InvalidValue, "Invalid port number"))?;
 
     Ok(crate::config::RadiusConfig {
         auth_port,
@@ -171,9 +216,13 @@ fn prompt_firewall() -> Result<crate::config::FirewallConfig> {
     let syn_flood_rate: u32 = Input::new()
         .with_prompt("SYN flood rate limit (packets/sec)")
         .default("20".to_string())
-        .interact()?
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Firewall prompt failed: {}", file!(), line!(), e);
+            e
+        })?
         .parse()
-        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid rate limit".to_string()))?;
+        .map_err(|_| err!(InvalidValue, "Invalid rate limit"))?;
 
     Ok(crate::config::FirewallConfig {
         syn_flood_rate,
@@ -188,19 +237,31 @@ fn prompt_ssh() -> Result<crate::config::SshConfig> {
     let idle_timeout: u32 = Input::new()
         .with_prompt("SSH idle timeout (minutes)")
         .default("5".to_string())
-        .interact()?
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] SSH prompt failed: {}", file!(), line!(), e);
+            e
+        })?
         .parse()
-        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid timeout".to_string()))?;
+        .map_err(|_| err!(InvalidValue, "Invalid timeout"))?;
 
     let use_key = Confirm::new()
         .with_prompt("Configure SSH public key")
         .default(false)
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] SSH prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let public_key = if use_key {
         Some(Input::new()
             .with_prompt("SSH public key")
-            .interact()?)
+            .interact()
+            .map_err(|e| {
+                eprintln!("[{}:{}] SSH prompt failed: {}", file!(), line!(), e);
+                e
+            })?)
     } else {
         None
     };
@@ -218,16 +279,24 @@ fn prompt_web() -> Result<crate::config::WebConfig> {
     let http_port: u16 = Input::new()
         .with_prompt("HTTP port")
         .default("80".to_string())
-        .interact()?
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Web prompt failed: {}", file!(), line!(), e);
+            e
+        })?
         .parse()
-        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
+        .map_err(|_| err!(InvalidValue, "Invalid port number"))?;
 
     let https_port: u16 = Input::new()
         .with_prompt("HTTPS port")
         .default("443".to_string())
-        .interact()?
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Web prompt failed: {}", file!(), line!(), e);
+            e
+        })?
         .parse()
-        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
+        .map_err(|_| err!(InvalidValue, "Invalid port number"))?;
 
     Ok(crate::config::WebConfig {
         http_port,
@@ -244,16 +313,24 @@ fn prompt_vpn() -> Result<crate::config::VpnConfig> {
     let wireguard_port: u16 = Input::new()
         .with_prompt("WireGuard port")
         .default("51820".to_string())
-        .interact()?
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] VPN prompt failed: {}", file!(), line!(), e);
+            e
+        })?
         .parse()
-        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
+        .map_err(|_| err!(InvalidValue, "Invalid port number"))?;
 
     let openvpn_port: u16 = Input::new()
         .with_prompt("OpenVPN port")
         .default("1194".to_string())
-        .interact()?
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] VPN prompt failed: {}", file!(), line!(), e);
+            e
+        })?
         .parse()
-        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid port number".to_string()))?;
+        .map_err(|_| err!(InvalidValue, "Invalid port number"))?;
 
     Ok(crate::config::VpnConfig {
         wireguard_port,
@@ -270,7 +347,11 @@ fn prompt_storage() -> Result<crate::config::StorageConfig> {
     let usb_mount_point = Input::new()
         .with_prompt("USB mount point")
         .default("/mnt/usb".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Storage prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     Ok(crate::config::StorageConfig {
         usb_mount_point,
@@ -283,7 +364,11 @@ fn prompt_time() -> Result<crate::config::TimeConfig> {
     let timezone = Input::new()
         .with_prompt("Timezone")
         .default("UTC".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Time prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     Ok(crate::config::TimeConfig {
         timezone,
@@ -304,14 +389,22 @@ fn prompt_build() -> Result<crate::config::BuildConfig> {
     let jobs: u32 = Input::new()
         .with_prompt("Parallel build jobs (0 = auto)")
         .default("0".to_string())
-        .interact()?
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Build prompt failed: {}", file!(), line!(), e);
+            e
+        })?
         .parse()
-        .map_err(|_| crate::error::OcfgError::invalid_value("Invalid job count".to_string()))?;
+        .map_err(|_| err!(InvalidValue, "Invalid job count"))?;
 
     let verbose = Confirm::new()
         .with_prompt("Verbose build output")
         .default(true)
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Build prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     println!("\n--- Crypto Library Selection ---");
     println!("Choose the TLS/crypto library for the build:");
@@ -322,7 +415,11 @@ fn prompt_build() -> Result<crate::config::BuildConfig> {
     let crypto_selection = Input::new()
         .with_prompt("Select crypto library (1-3)")
         .default("1".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Build prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let crypto_library = match crypto_selection.as_str() {
         "1" => crate::config::CryptoLibrary::OpenSSL,
@@ -348,17 +445,29 @@ fn prompt_features() -> Result<crate::config::FeatureFlags> {
     let adblock_enabled = Confirm::new()
         .with_prompt("Enable ad blocking")
         .default(true)
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Features prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let banip_enabled = Confirm::new()
         .with_prompt("Enable IP blocking")
         .default(true)
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Features prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let ipv6_enabled = Confirm::new()
         .with_prompt("Enable IPv6")
         .default(false)
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Features prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     Ok(crate::config::FeatureFlags {
         adblock_enabled,
@@ -374,12 +483,20 @@ fn prompt_security() -> Result<crate::config::SecurityConfig> {
     let enable_kaslr = Confirm::new()
         .with_prompt("Enable KASLR")
         .default(true)
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Security prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let enable_stack_protector = Confirm::new()
         .with_prompt("Enable kernel stack protector")
         .default(true)
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Security prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     Ok(crate::config::SecurityConfig {
         enable_kaslr,
@@ -408,22 +525,38 @@ fn prompt_certificates() -> Result<crate::config::CertificateConfig> {
     let country = Input::new()
         .with_prompt("Country code")
         .default("US".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Certificate prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let state = Input::new()
         .with_prompt("State/Province")
         .default("California".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Certificate prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let organization = Input::new()
         .with_prompt("Organization")
         .default("My Organization".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Certificate prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     let common_name = Input::new()
         .with_prompt("Common name (hostname)")
         .default("router.local".to_string())
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Certificate prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     Ok(crate::config::CertificateConfig {
         country,
@@ -443,22 +576,26 @@ fn prompt_secrets() -> Result<crate::config::SecretsConfig> {
     let auto_generate = Confirm::new()
         .with_prompt("Auto-generate all secrets")
         .default(true)
-        .interact()?;
+        .interact()
+        .map_err(|e| {
+            eprintln!("[{}:{}] Secrets prompt failed: {}", file!(), line!(), e);
+            e
+        })?;
 
     if auto_generate {
         Ok(crate::config::SecretsConfig {
-            radius_shared_secret: Some(crypto::generate_radius_secret()?),
-            radius_admin_password: Some(crypto::generate_password(32)?),
-            ca_key_password: Some(crypto::generate_password(32)?),
-            server_key_password: Some(crypto::generate_password(32)?),
+            radius_shared_secret: Some(crypto::generate_radius_secret()),
+            radius_admin_password: Some(crypto::generate_password(32)),
+            ca_key_password: Some(crypto::generate_password(32)),
+            server_key_password: Some(crypto::generate_password(32)),
             root_password_hash: None,
             ssh_public_key: None,
-            wifi_radius_secret: Some(crypto::generate_radius_secret()?),
-            wired_radius_secret: Some(crypto::generate_radius_secret()?),
-            wifi_24g_password: Some(crypto::generate_password(24)?),
-            wifi_5g_password: Some(crypto::generate_password(24)?),
-            encryption_key: Some(crypto::generate_encryption_key()?),
-            hmac_key: Some(crypto::generate_hmac_key()?),
+            wifi_radius_secret: Some(crypto::generate_radius_secret()),
+            wired_radius_secret: Some(crypto::generate_radius_secret()),
+            wifi_24g_password: Some(crypto::generate_password(24)),
+            wifi_5g_password: Some(crypto::generate_password(24)),
+            encryption_key: Some(crypto::generate_encryption_key()),
+            hmac_key: Some(crypto::generate_hmac_key()),
             ddns_api_key: None,
             cloudflare_api_token: None,
             cloudflare_zone_id: None,

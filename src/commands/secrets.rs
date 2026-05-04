@@ -1,6 +1,7 @@
 use crate::config::OcfgConfig;
 use crate::crypto;
 use crate::error::Result;
+use crate::err;
 use std::fs;
 
 pub async fn run(
@@ -19,30 +20,30 @@ pub async fn run(
 
     if all || radius {
         println!("Generating RADIUS secrets...");
-        config.secrets.radius_shared_secret = Some(crypto::generate_radius_secret()?);
-        config.secrets.radius_admin_password = Some(crypto::generate_password(32)?);
-        config.secrets.wifi_radius_secret = Some(crypto::generate_radius_secret()?);
-        config.secrets.wired_radius_secret = Some(crypto::generate_radius_secret()?);
+        config.secrets.radius_shared_secret = Some(crypto::generate_radius_secret());
+        config.secrets.radius_admin_password = Some(crypto::generate_password(32));
+        config.secrets.wifi_radius_secret = Some(crypto::generate_radius_secret());
+        config.secrets.wired_radius_secret = Some(crypto::generate_radius_secret());
     }
 
     if all || certificates {
         println!("Generating certificate secrets...");
-        config.secrets.ca_key_password = Some(crypto::generate_password(32)?);
-        config.secrets.server_key_password = Some(crypto::generate_password(32)?);
+        config.secrets.ca_key_password = Some(crypto::generate_password(32));
+        config.secrets.server_key_password = Some(crypto::generate_password(32));
     }
 
     if all || vpn {
         println!("Generating VPN secrets...");
-        config.secrets.encryption_key = Some(crypto::generate_encryption_key()?);
-        config.secrets.hmac_key = Some(crypto::generate_hmac_key()?);
-        config.secrets.wifi_24g_password = Some(crypto::generate_password(24)?);
-        config.secrets.wifi_5g_password = Some(crypto::generate_password(24)?);
+        config.secrets.encryption_key = Some(crypto::generate_encryption_key());
+        config.secrets.hmac_key = Some(crypto::generate_hmac_key());
+        config.secrets.wifi_24g_password = Some(crypto::generate_password(24));
+        config.secrets.wifi_5g_password = Some(crypto::generate_password(24));
     }
 
     if all {
         println!("Generating additional secrets...");
-        config.secrets.ddns_api_key = Some(crypto::generate_api_key()?);
-        config.secrets.cloudflare_api_token = Some(crypto::generate_api_key()?);
+        config.secrets.ddns_api_key = Some(crypto::generate_api_key());
+        config.secrets.cloudflare_api_token = Some(crypto::generate_api_key());
     }
 
     // Save secrets to separate file
@@ -53,7 +54,7 @@ pub async fn run(
     };
 
     let secrets_content = toml::to_string_pretty(&config.secrets)
-        .map_err(|e| crate::error::OcfgError::serialization(format!("Failed to serialize secrets: {}", e)))?;
+        .map_err(|e| err!(Serialization, "Failed to serialize secrets: {}", e))?;
 
     fs::write(&secrets_path, secrets_content)
         .map_err(|e| crate::error::OcfgError::Io(e))?;

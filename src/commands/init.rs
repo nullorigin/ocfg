@@ -1,5 +1,6 @@
 use crate::config::OcfgConfig;
 use crate::error::Result;
+use crate::err;
 use crate::interactive;
 
 pub async fn run(profile: Option<String>, target: Option<String>, non_interactive: bool) -> Result<()> {
@@ -30,7 +31,7 @@ pub async fn run(profile: Option<String>, target: Option<String>, non_interactiv
     };
 
     config.save()
-        .map_err(|e| crate::error::OcfgError::config(format!("Failed to save configuration: {}", e)))?;
+        .map_err(|e| err!(Config, "Failed to save configuration: {}", e))?;
 
     println!("\nConfiguration initialized successfully!");
     println!("Config file saved to: {:?}", OcfgConfig::config_path());

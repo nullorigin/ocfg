@@ -1,6 +1,7 @@
 use crate::config::OcfgConfig;
 use crate::templates::TemplateEngine;
 use crate::error::Result;
+use crate::err;
 use crate::json::ToJson;
 use std::fs;
 
@@ -21,10 +22,10 @@ pub async fn run(format: String, output: Option<String>) -> Result<()> {
         }
         "toml" => {
             toml::to_string_pretty(&config)
-                .map_err(|e| crate::error::OcfgError::serialization(format!("Failed to serialize to TOML: {}", e)))?
+                .map_err(|e| err!(Serialization, "Failed to serialize to TOML: {}", e))?
         }
         _ => {
-            return Err(crate::error::OcfgError::validation(format!("Unsupported format: {}. Supported formats: env, json, yaml, toml", format)));
+            return Err(err!(Validation, "Unsupported format: {}. Supported formats: env, json, yaml, toml", format));
         }
     };
 

@@ -28,7 +28,7 @@ use config::OcfgConfig;
 
 /// Initialize the configuration system
 pub fn init() -> Result<OcfgConfig> {
-    OcfgConfig::load().map_err(|e| OcfgError::Config(e.to_string()))
+    OcfgConfig::load().map_err(|e| err!(Config, "{}", e))
 }
 
 /// Get the default configuration

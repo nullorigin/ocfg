@@ -37,7 +37,8 @@
 //!     .build();
 //! ```
 
-use crate::error::{OcfgError, Result};
+use crate::error::Result;
+use crate::err;
 use std::collections::HashMap;
 use std::fmt;
 use std::str;
@@ -601,7 +602,7 @@ pub fn get_string_field(obj: &HashMap<String, JsonValue>, field: &str) -> Result
     obj.get(field)
         .and_then(|v| v.as_str())
         .map(|s| s.to_string())
-        .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected string)", "object", field)))
+        .ok_or_else(|| err!(InvalidValue, "{}.{} (expected string)", "object", field))
 }
 
 /// Helper for extracting optional string fields from JSON objects
@@ -613,7 +614,7 @@ pub fn get_string_field_opt(obj: &HashMap<String, JsonValue>, field: &str) -> Op
 pub fn get_bool_field(obj: &HashMap<String, JsonValue>, field: &str) -> Result<bool> {
     obj.get(field)
         .and_then(|v| v.as_bool())
-        .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected bool)", "object", field)))
+        .ok_or_else(|| err!(InvalidValue, "{}.{} (expected bool)", "object", field))
 }
 
 /// Helper for extracting optional boolean fields from JSON objects
@@ -625,7 +626,7 @@ pub fn get_bool_field_opt(obj: &HashMap<String, JsonValue>, field: &str) -> Opti
 pub fn get_i64_field(obj: &HashMap<String, JsonValue>, field: &str) -> Result<i64> {
     obj.get(field)
         .and_then(|v| v.as_i64())
-        .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected number)", "object", field)))
+        .ok_or_else(|| err!(InvalidValue, "{}.{} (expected number)", "object", field))
 }
 
 /// Helper for extracting u32 fields from JSON objects
@@ -633,7 +634,7 @@ pub fn get_u32_field(obj: &HashMap<String, JsonValue>, field: &str) -> Result<u3
     obj.get(field)
         .and_then(|v| v.as_i64())
         .and_then(|n| u32::try_from(n).ok())
-        .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected u32)", "object", field)))
+        .ok_or_else(|| err!(InvalidValue, "{}.{} (expected u32)", "object", field))
 }
 
 /// Helper for extracting u16 fields from JSON objects
@@ -641,7 +642,7 @@ pub fn get_u16_field(obj: &HashMap<String, JsonValue>, field: &str) -> Result<u1
     obj.get(field)
         .and_then(|v| v.as_i64())
         .and_then(|n| u16::try_from(n).ok())
-        .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected u16)", "object", field)))
+        .ok_or_else(|| err!(InvalidValue, "{}.{} (expected u16)", "object", field))
 }
 
 /// Helper for extracting string vector fields from JSON objects
@@ -652,7 +653,7 @@ pub fn get_string_vec_field(obj: &HashMap<String, JsonValue>, field: &str) -> Re
             arr.iter()
                 .map(|v| v.as_str().map(|s| s.to_string()))
                 .collect::<Option<Vec<_>>>()
-                .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected array of strings)", "object", field)))
+                .ok_or_else(|| err!(InvalidValue, "{}.{} (expected array of strings)", "object", field))
         })
         .unwrap_or_else(|| Ok(Vec::new()))
 }
@@ -670,7 +671,7 @@ pub fn get_string_vec_field_opt(obj: &HashMap<String, JsonValue>, field: &str) -
 pub fn get_object_field(obj: &HashMap<String, JsonValue>, field: &str) -> Result<HashMap<String, JsonValue>> {
     obj.get(field)
         .and_then(|v| v.as_object_owned())
-        .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected object)", "object", field)))
+        .ok_or_else(|| err!(InvalidValue, "{}.{} (expected object)", "object", field))
 }
 
 /// Helper for extracting optional nested objects from JSON objects
@@ -682,7 +683,7 @@ pub fn get_object_field_opt(obj: &HashMap<String, JsonValue>, field: &str) -> Op
 pub fn get_array_field(obj: &HashMap<String, JsonValue>, field: &str) -> Result<Vec<JsonValue>> {
     obj.get(field)
         .and_then(|v| v.as_array_owned())
-        .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected array)", "object", field)))
+        .ok_or_else(|| err!(InvalidValue, "{}.{} (expected array)", "object", field))
 }
 
 /// Helper for extracting optional arrays from JSON objects
@@ -733,7 +734,7 @@ impl<'a> FieldExtractor<'a> {
         self.obj.get(field)
             .and_then(|v| v.as_str())
             .map(|s| s.to_string())
-            .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected string)", self.path, field)))
+            .ok_or_else(|| err!(InvalidValue, "{}.{} (expected string)", self.path, field))
     }
 
     pub fn string_opt(&self, field: &str) -> Option<String> {
@@ -743,7 +744,7 @@ impl<'a> FieldExtractor<'a> {
     pub fn bool(&self, field: &str) -> Result<bool> {
         self.obj.get(field)
             .and_then(|v| v.as_bool())
-            .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected bool)", self.path, field)))
+            .ok_or_else(|| err!(InvalidValue, "{}.{} (expected bool)", self.path, field))
     }
 
     pub fn bool_opt(&self, field: &str) -> Option<bool> {
@@ -754,14 +755,14 @@ impl<'a> FieldExtractor<'a> {
         self.obj.get(field)
             .and_then(|v| v.as_i64())
             .and_then(|n| u32::try_from(n).ok())
-            .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected u32)", self.path, field)))
+            .ok_or_else(|| err!(InvalidValue, "{}.{} (expected u32)", self.path, field))
     }
 
     pub fn u16(&self, field: &str) -> Result<u16> {
         self.obj.get(field)
             .and_then(|v| v.as_i64())
             .and_then(|n| u16::try_from(n).ok())
-            .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected u16)", self.path, field)))
+            .ok_or_else(|| err!(InvalidValue, "{}.{} (expected u16)", self.path, field))
     }
 
     pub fn string_vec(&self, field: &str) -> Result<Vec<String>> {
@@ -771,7 +772,7 @@ impl<'a> FieldExtractor<'a> {
                 arr.iter()
                     .map(|v| v.as_str().map(|s| s.to_string()))
                     .collect::<Option<Vec<_>>>()
-                    .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected array of strings)", self.path, field)))
+                    .ok_or_else(|| err!(InvalidValue, "{}.{} (expected array of strings)", self.path, field))
             })
             .unwrap_or_else(|| Ok(Vec::new()))
     }
@@ -779,7 +780,7 @@ impl<'a> FieldExtractor<'a> {
     pub fn object(&self, field: &str) -> Result<HashMap<String, JsonValue>> {
         self.obj.get(field)
             .and_then(|v| v.as_object_owned())
-            .ok_or_else(|| OcfgError::invalid_value(format!("{}.{} (expected object)", self.path, field)))
+            .ok_or_else(|| err!(InvalidValue, "{}.{} (expected object)", self.path, field))
     }
 }
 
@@ -794,7 +795,7 @@ impl JsonValue {
         let input = input.trim();
         
         if input.is_empty() {
-            return Err(OcfgError::serialization("Empty JSON input"));
+            return Err(err!(Serialization, "Empty JSON input"));
         }
 
         let chars: Vec<char> = input.chars().collect();
@@ -808,7 +809,7 @@ impl JsonValue {
         }
         
         if pos < chars.len() {
-            return Err(OcfgError::serialization("Unexpected trailing characters"));
+            return Err(err!(Serialization, "Unexpected trailing characters"));
         }
         
         Ok(result)
@@ -816,7 +817,7 @@ impl JsonValue {
 
     fn parse_value(chars: &[char], pos: &mut usize, depth: usize) -> Result<Self> {
         if depth > MAX_DEPTH {
-            return Err(OcfgError::serialization("JSON nesting depth exceeded"));
+            return Err(err!(Serialization, "JSON nesting depth exceeded"));
         }
 
         // Skip whitespace
@@ -825,7 +826,7 @@ impl JsonValue {
         }
 
         if *pos >= chars.len() {
-            return Err(OcfgError::serialization("Unexpected end of input"));
+            return Err(err!(Serialization, "Unexpected end of input"));
         }
 
         match chars[*pos] {
@@ -836,7 +837,7 @@ impl JsonValue {
             'f' => Self::parse_literal(chars, pos, "false", JsonValue::Bool(false)),
             'n' => Self::parse_literal(chars, pos, "null", JsonValue::Null),
             '-' | '0'..='9' => Self::parse_number(chars, pos),
-            c => Err(OcfgError::serialization(format!("Unexpected character: {}", c))),
+            c => Err(err!(Serialization, "Unexpected character: {}", c)),
         }
     }
 
@@ -862,14 +863,14 @@ impl JsonValue {
             }
 
             if *pos >= chars.len() {
-                return Err(OcfgError::serialization("Unexpected end of input in object"));
+                return Err(err!(Serialization, "Unexpected end of input in object"));
             }
 
             // Parse key
             let key = Self::parse_string(chars, pos)?;
             let key_str = match key {
                 JsonValue::String(s) => s,
-                _ => return Err(OcfgError::serialization("Object key must be a string")),
+                _ => return Err(err!(Serialization, "Object key must be a string")),
             };
 
             // Skip whitespace
@@ -878,7 +879,7 @@ impl JsonValue {
             }
 
             if *pos >= chars.len() || chars[*pos] != ':' {
-                return Err(OcfgError::serialization("Expected ':' after object key"));
+                return Err(err!(Serialization, "Expected ':' after object key"));
             }
             *pos += 1;
 
@@ -897,7 +898,7 @@ impl JsonValue {
             }
 
             if *pos >= chars.len() {
-                return Err(OcfgError::serialization("Unexpected end of input in object"));
+                return Err(err!(Serialization, "Unexpected end of input in object"));
             }
 
             match chars[*pos] {
@@ -906,7 +907,7 @@ impl JsonValue {
                     return Ok(JsonValue::Object(obj));
                 }
                 ',' => *pos += 1,
-                c => return Err(OcfgError::serialization(format!("Expected ',' or '}}' in object, got: {}", c))),
+                c => return Err(err!(Serialization, "Expected ',' or '}}' in object, got: {}", c)),
             }
         }
     }
@@ -933,7 +934,7 @@ impl JsonValue {
             }
 
             if *pos >= chars.len() {
-                return Err(OcfgError::serialization("Unexpected end of input in array"));
+                return Err(err!(Serialization, "Unexpected end of input in array"));
             }
 
             // Parse value
@@ -946,7 +947,7 @@ impl JsonValue {
             }
 
             if *pos >= chars.len() {
-                return Err(OcfgError::serialization("Unexpected end of input in array"));
+                return Err(err!(Serialization, "Unexpected end of input in array"));
             }
 
             match chars[*pos] {
@@ -955,7 +956,7 @@ impl JsonValue {
                     return Ok(JsonValue::Array(arr));
                 }
                 ',' => *pos += 1,
-                c => return Err(OcfgError::serialization(format!("Expected ',' or ']' in array, got: {}", c))),
+                c => return Err(err!(Serialization, "Expected ',' or ']' in array, got: {}", c)),
             }
         }
     }
@@ -974,7 +975,7 @@ impl JsonValue {
                 '\\' => {
                     *pos += 1;
                     if *pos >= chars.len() {
-                        return Err(OcfgError::serialization("Unexpected end of input in string escape"));
+                        return Err(err!(Serialization, "Unexpected end of input in string escape"));
                     }
                     match chars[*pos] {
                         '"' => result.push('"'),
@@ -988,7 +989,7 @@ impl JsonValue {
                         'u' => {
                             *pos += 1;
                             if *pos + 3 >= chars.len() {
-                                return Err(OcfgError::serialization("Unexpected end of input in unicode escape"));
+                                return Err(err!(Serialization, "Unexpected end of input in unicode escape"));
                             }
                             // Parse 4 hex digits
                             let hex: String = chars[*pos..=*pos+3].iter().collect();
@@ -999,11 +1000,11 @@ impl JsonValue {
                                     result.push('\u{FFFD}'); // Replacement character
                                 }
                             } else {
-                                return Err(OcfgError::serialization(format!("Invalid unicode escape: \\u{}", hex)));
+                                return Err(err!(Serialization, "Invalid unicode escape: \\u{}", hex));
                             }
                             *pos += 3;
                         }
-                        c => return Err(OcfgError::serialization(format!("Invalid escape sequence: \\{}", c))),
+                        c => return Err(err!(Serialization, "Invalid escape sequence: \\{}", c)),
                     }
                 }
                 c => result.push(c),
@@ -1011,7 +1012,7 @@ impl JsonValue {
             *pos += 1;
         }
         
-        Err(OcfgError::serialization("Unterminated string"))
+        Err(err!(Serialization, "Unterminated string"))
     }
 
     fn parse_number(chars: &[char], pos: &mut usize) -> Result<Self> {
@@ -1034,17 +1035,17 @@ impl JsonValue {
         if is_float {
             num_str.parse::<f64>()
                 .map(JsonValue::Float)
-                .map_err(|_| OcfgError::serialization(format!("Invalid float: {}", num_str)))
+                .map_err(|_| err!(Serialization, "Invalid float: {}", num_str))
         } else {
             num_str.parse::<i64>()
                 .map(JsonValue::Integer)
-                .map_err(|_| OcfgError::serialization(format!("Invalid integer: {}", num_str)))
+                .map_err(|_| err!(Serialization, "Invalid integer: {}", num_str))
         }
     }
 
     fn parse_literal(chars: &[char], pos: &mut usize, literal: &str, value: JsonValue) -> Result<Self> {
         if *pos + literal.len() > chars.len() {
-            return Err(OcfgError::serialization("Unexpected end of input in literal"));
+            return Err(err!(Serialization, "Unexpected end of input in literal"));
         }
         
         let slice: String = chars[*pos..*pos+literal.len()].iter().collect();
@@ -1052,7 +1053,7 @@ impl JsonValue {
             *pos += literal.len();
             Ok(value)
         } else {
-            Err(OcfgError::serialization(format!("Expected '{}', got: {}", literal, slice)))
+            Err(err!(Serialization, "Expected '{}', got: {}", literal, slice))
         }
     }
 

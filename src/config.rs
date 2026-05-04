@@ -1,4 +1,5 @@
-use crate::error::{OcfgError, Result};
+use crate::error::Result;
+use crate::err;
 use crate::json::{ToJson, FromJson, JsonObjectBuilder, FieldExtractor};
 use crate::json::JsonValue;
 use serde::{Deserialize, Serialize};
@@ -369,7 +370,7 @@ impl OcfgConfig {
         if config_path.exists() {
             let content = fs::read_to_string(&config_path)?;
             let config: OcfgConfig = toml::from_str(&content)
-                .map_err(|e| OcfgError::config(format!("Failed to parse config file: {}", e)))?;
+                .map_err(|e| err!(Config, "Failed to parse config file: {}", e))?;
             Ok(config)
         } else {
             Ok(Self::default())
@@ -384,7 +385,7 @@ impl OcfgConfig {
         }
 
         let content = toml::to_string_pretty(self)
-            .map_err(|e| OcfgError::config(format!("Failed to serialize config: {}", e)))?;
+            .map_err(|e| err!(Config, "Failed to serialize config: {}", e))?;
         
         fs::write(&config_path, content)?;
         Ok(())
@@ -636,16 +637,16 @@ impl ToJson for OcfgConfig {
 impl FromJson for CryptoLibrary {
     fn from_json(value: JsonValue) -> Result<Self> {
         let s = value.as_str()
-            .ok_or_else(|| OcfgError::invalid_value("CryptoLibrary: expected string"))?;
+            .ok_or_else(|| err!(InvalidValue, "CryptoLibrary: expected string"))?;
         CryptoLibrary::from_str(s)
-            .map_err(|e| OcfgError::invalid_value(format!("CryptoLibrary: {}", e)))
+            .map_err(|e| err!(InvalidValue, "CryptoLibrary: {}", e))
     }
 }
 
 impl FromJson for NetworkConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("NetworkConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "NetworkConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "NetworkConfig");
         Ok(NetworkConfig {
             wan_interface: extractor.string("wan_interface")?,
@@ -657,7 +658,7 @@ impl FromJson for NetworkConfig {
 impl FromJson for DnsConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("DnsConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "DnsConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "DnsConfig");
         Ok(DnsConfig {
             doh_upstream: extractor.string("doh_upstream")?,
@@ -673,7 +674,7 @@ impl FromJson for DnsConfig {
 impl FromJson for WifiConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("WifiConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "WifiConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "WifiConfig");
         Ok(WifiConfig {
             ssid_24g: extractor.string("ssid_24g")?,
@@ -689,7 +690,7 @@ impl FromJson for WifiConfig {
 impl FromJson for BuildConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("BuildConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "BuildConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "BuildConfig");
         Ok(BuildConfig {
             jobs: extractor.u32("jobs")?,
@@ -697,7 +698,7 @@ impl FromJson for BuildConfig {
             extra_packages: extractor.string_vec("extra_packages")?,
             exclude_packages: extractor.string_vec("exclude_packages")?,
             crypto_library: FromJson::from_json(obj.get("crypto_library")
-                .ok_or_else(|| OcfgError::invalid_value("BuildConfig.crypto_library: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "BuildConfig.crypto_library: missing field"))?
                 .clone())?,
         })
     }
@@ -706,7 +707,7 @@ impl FromJson for BuildConfig {
 impl FromJson for FeatureFlags {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("FeatureFlags: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "FeatureFlags: expected object"))?;
         let extractor = FieldExtractor::new(obj, "FeatureFlags");
         Ok(FeatureFlags {
             adblock_enabled: extractor.bool("adblock_enabled")?,
@@ -720,7 +721,7 @@ impl FromJson for FeatureFlags {
 impl FromJson for RadiusConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("RadiusConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "RadiusConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "RadiusConfig");
         Ok(RadiusConfig {
             auth_port: extractor.u16("auth_port")?,
@@ -734,7 +735,7 @@ impl FromJson for RadiusConfig {
 impl FromJson for FirewallConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("FirewallConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "FirewallConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "FirewallConfig");
         Ok(FirewallConfig {
             syn_flood_rate: extractor.u32("syn_flood_rate")?,
@@ -747,7 +748,7 @@ impl FromJson for FirewallConfig {
 impl FromJson for SshConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("SshConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "SshConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "SshConfig");
         Ok(SshConfig {
             idle_timeout: extractor.u32("idle_timeout")?,
@@ -760,7 +761,7 @@ impl FromJson for SshConfig {
 impl FromJson for WebConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("WebConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "WebConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "WebConfig");
         Ok(WebConfig {
             http_port: extractor.u16("http_port")?,
@@ -775,7 +776,7 @@ impl FromJson for WebConfig {
 impl FromJson for VpnConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("VpnConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "VpnConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "VpnConfig");
         Ok(VpnConfig {
             wireguard_port: extractor.u16("wireguard_port")?,
@@ -790,7 +791,7 @@ impl FromJson for VpnConfig {
 impl FromJson for StorageConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("StorageConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "StorageConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "StorageConfig");
         Ok(StorageConfig {
             usb_mount_point: extractor.string("usb_mount_point")?,
@@ -801,7 +802,7 @@ impl FromJson for StorageConfig {
 impl FromJson for TimeConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("TimeConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "TimeConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "TimeConfig");
         Ok(TimeConfig {
             timezone: extractor.string("timezone")?,
@@ -815,7 +816,7 @@ impl FromJson for TimeConfig {
 impl FromJson for SecurityConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("SecurityConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "SecurityConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "SecurityConfig");
         Ok(SecurityConfig {
             enable_kaslr: extractor.bool("enable_kaslr")?,
@@ -842,7 +843,7 @@ impl FromJson for SecurityConfig {
 impl FromJson for SecretsConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("SecretsConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "SecretsConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "SecretsConfig");
         Ok(SecretsConfig {
             radius_shared_secret: extractor.string_opt("radius_shared_secret"),
@@ -867,7 +868,7 @@ impl FromJson for SecretsConfig {
 impl FromJson for CertificateConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("CertificateConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "CertificateConfig: expected object"))?;
         let extractor = FieldExtractor::new(obj, "CertificateConfig");
         Ok(CertificateConfig {
             country: extractor.string("country")?,
@@ -884,52 +885,52 @@ impl FromJson for CertificateConfig {
 impl FromJson for OcfgConfig {
     fn from_json(value: JsonValue) -> Result<Self> {
         let obj = value.as_object()
-            .ok_or_else(|| OcfgError::invalid_value("OcfgConfig: expected object"))?;
+            .ok_or_else(|| err!(InvalidValue, "OcfgConfig: expected object"))?;
         Ok(OcfgConfig {
             network: FromJson::from_json(obj.get("network")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.network: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.network: missing field"))?
                 .clone())?,
             dns: FromJson::from_json(obj.get("dns")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.dns: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.dns: missing field"))?
                 .clone())?,
             wifi: FromJson::from_json(obj.get("wifi")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.wifi: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.wifi: missing field"))?
                 .clone())?,
             radius: FromJson::from_json(obj.get("radius")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.radius: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.radius: missing field"))?
                 .clone())?,
             firewall: FromJson::from_json(obj.get("firewall")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.firewall: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.firewall: missing field"))?
                 .clone())?,
             ssh: FromJson::from_json(obj.get("ssh")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.ssh: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.ssh: missing field"))?
                 .clone())?,
             web: FromJson::from_json(obj.get("web")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.web: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.web: missing field"))?
                 .clone())?,
             vpn: FromJson::from_json(obj.get("vpn")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.vpn: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.vpn: missing field"))?
                 .clone())?,
             storage: FromJson::from_json(obj.get("storage")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.storage: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.storage: missing field"))?
                 .clone())?,
             time: FromJson::from_json(obj.get("time")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.time: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.time: missing field"))?
                 .clone())?,
             build: FromJson::from_json(obj.get("build")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.build: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.build: missing field"))?
                 .clone())?,
             features: FromJson::from_json(obj.get("features")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.features: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.features: missing field"))?
                 .clone())?,
             security: FromJson::from_json(obj.get("security")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.security: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.security: missing field"))?
                 .clone())?,
             secrets: FromJson::from_json(obj.get("secrets")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.secrets: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.secrets: missing field"))?
                 .clone())?,
             certificates: FromJson::from_json(obj.get("certificates")
-                .ok_or_else(|| OcfgError::invalid_value("OcfgConfig.certificates: missing field"))?
+                .ok_or_else(|| err!(InvalidValue, "OcfgConfig.certificates: missing field"))?
                 .clone())?,
         })
     }

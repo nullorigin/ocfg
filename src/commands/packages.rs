@@ -1,5 +1,6 @@
 use crate::config::OcfgConfig;
 use crate::error::Result;
+use crate::err;
 
 pub async fn run(
     list: bool,
@@ -45,7 +46,7 @@ pub async fn run(
     }
 
     config.save()
-        .map_err(|e| crate::error::OcfgError::config(format!("Failed to save configuration: {}", e)))?;
+        .map_err(|e| err!(Config, "Failed to save configuration: {}", e))?;
 
     println!("Package configuration complete!");
     Ok(())
